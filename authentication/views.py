@@ -86,6 +86,7 @@ def Employeedetails(request, user_id):
 class EmployeeRegistrationView(APIView):
     def post(self, request, format=None):
         serializer = EmployeeSerializer(data=request.data)
+        print("ggggggggggggggggggggg")
 
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
@@ -94,6 +95,7 @@ class EmployeeRegistrationView(APIView):
         username = validated_data.get("username")
         department = validated_data.get("department")
 
+        print(email, username, department, "hhhhhhhhhhhhhhh")
         temporary_password = validated_data.get("temporaryPassword")
 
         department = Department.objects.get(name=department)
@@ -104,8 +106,7 @@ class EmployeeRegistrationView(APIView):
             department=department,
             password=make_password(temporary_password),
         )
-
-        # Generate and store the email verification token
+        print("jjjjjjjjjjjjj")
         email_token = default_token_generator.make_token(employee)
         employee.email_token = email_token
         employee.save()
@@ -117,7 +118,6 @@ class EmployeeRegistrationView(APIView):
         send_email_to_employee(
             email, username, employee.id, temporary_password, accessToken
         )
-        # send_email_to_employee(email,username, employee.id, temporary_password, email_token)
 
         print("successs", department)
         response_data = {
@@ -135,7 +135,6 @@ class EmployeeRegistrationView(APIView):
 def generate_tokens(user):
     refresh = RefreshToken.for_user(user)
 
-    # Return both refresh and access tokens
     return {
         "refresh": str(refresh),
         "access": str(refresh.access_token),
@@ -143,7 +142,6 @@ def generate_tokens(user):
 
 
 def send_email_to_employee(email, username, user_id, temporary_password, email_token):
-    # verification_link = f'http://localhost:3000/user?token={email_token}'
     verification_link = (
         f"http://localhost:3000/user?token={email_token}&user_id={user_id}"
     )
@@ -196,10 +194,10 @@ class LoginView(TokenObtainPairView):
             data = request.data
             print(data)
             email = data["email"]
-            print(email,"emailllllllllll")
+            print(email, "emailllllllllll")
             # user =  Employee.objects.get(email=email)
             employee = Employee.objects.select_related("department").get(email=email)
-            print(employee,"jjjjjjj")
+            print(employee, "jjjjjjj")
             department_name = employee.department.name
             print("here")
             print(employee, "im the bosssss")
@@ -232,3 +230,130 @@ class LoginView(TokenObtainPairView):
             # Authentication failed
             print("erooorrrrrrrrrrrrrrrrrrrrrrrr")
             return response
+
+
+class EmployeeListView(APIView):
+    def get(self, request):
+        employees = Employee.objects.filter(is_superuser=False)
+        serializer = EmployeeDisplaySerializer(employees, many=True)
+        return Response(serializer.data)
+
+
+class BlockEmployeeView(APIView):
+    def put(self, request, employee_id):
+        try:
+            employee = Employee.objects.get(id=employee_id)
+        except Employee.DoesNotExist:
+            raise NotFound("Employee not found")
+
+        employee.is_active = False
+        employee.is_blocked = True
+        employee.save()
+        serializer = EmployeeSerializer(employee)
+        return Response(serializer.data)
+
+
+class UnblockEmployeeView(APIView):
+    def put(self, request, employee_id):
+        try:
+            employee = Employee.objects.get(id=employee_id)
+        except Employee.DoesNotExist:
+            raise NotFound("Employee not found")
+
+        employee.is_active = True
+        employee.is_blocked = False
+        employee.save()
+        serializer = EmployeeSerializer(employee)
+        return Response(serializer.data)
+
+
+class EmployeeEditView(APIView):
+    def get(self, request, pk):
+        try:
+            employee = Employee.objects.get(pk=pk)
+
+            serializer = EmployeeDisplaySerializer(employee)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except employee.DoesNotExist:
+            return Response(
+                {"message": "employee not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+    def put(self, request, pk):
+        try:
+            employee = Employee.objects.get(pk=pk)
+
+            form_data = request.data.get("employee_name")
+            # form_data = request.data.get('formDataToSend')
+
+            serializer = EmployeeEditSerializer(
+                employee, data=request.data, partial=True
+            )
+
+            if serializer.is_valid():
+                serializer.save()
+
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except employee.DoesNotExist:
+            return Response(
+                {"message": "employee not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+
+class DepartmentListAPIView(APIView):
+    def get(self, request, pk=None):
+        if pk:
+            department = self.get_object(pk)
+            serializer = DepartmentSerializer(department)
+            return Response(serializer.data)
+
+        departments = Department.objects.all()
+        serializer = DepartmentSerializer(departments, many=True)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        department = self.get_object(pk)
+        serializer = DepartmentSerializer(department, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):
+        serializer = DepartmentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        department = self.get_object(pk)
+        employees = Employee.objects.filter(department=department)
+        employees.update(department=None)
+        department.delete()
+        return Response(
+            {"message": "Department deleted successfully"},
+            status=status.HTTP_204_NO_CONTENT,
+        )
+
+    def get_object(self, pk):
+        try:
+            return Department.objects.get(pk=pk)
+        except Department.DoesNotExist:
+            return Response(
+                {"message": "Department not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+
+@api_view(["POST"])
+def add_department(request):
+    if request.method == "POST":
+        serializer = DepartmentSerializer(data=request.data)
+        print(request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
