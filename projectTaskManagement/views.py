@@ -7,7 +7,6 @@ from .models import *
 from .serializers import *
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
-
 from django.utils import timezone
 from datetime import datetime
 
@@ -16,6 +15,7 @@ from datetime import datetime
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
+    print(queryset, "ggggggggggggggggggggggggggggggg")
     serializer_class = ProjectSerializer
 
     def create(self, request):
@@ -45,6 +45,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["PUT"])
     def update_project(self, request, pk=None):
+        print("i am hereeeeeeeeeeeeeeeeee")
         project = self.get_object()
         serializer = self.get_serializer(project, data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -140,7 +141,9 @@ def update_task_status(request, pk):
         task = Task.objects.get(pk=pk)
         new_status = request.data.get("status")
         task.state = new_status
+        print(task.state, "oooooooooooooooooooooooooooooooooo")
         task.save()
+        print(task,"kkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
 
         return Response(
             {"success": "Task status updated successfully."}, status=status.HTTP_200_OK
