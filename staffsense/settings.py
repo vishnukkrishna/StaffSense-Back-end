@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "authentication",  # All authentication functions are present in this app
     "projectTaskManagement",  # Project and Task Management
+    "complaints",  # Complaints and Request
     "rest_framework",
     "corsheaders",
     "rest_framework_simplejwt",

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.contrib.auth.models import BaseUserManager
+from django.utils import timezone
 
 # Create your models here.
 
@@ -78,3 +79,13 @@ class Employee(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+class Announcement(models.Model):
+    event = models.CharField(max_length=255)
+    note = models.TextField()
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.event

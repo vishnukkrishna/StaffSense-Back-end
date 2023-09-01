@@ -34,4 +34,10 @@ urlpatterns = [
         name="department-update",
     ),
     path("add_department/", add_department, name="add_department"),
+    path("announcements/", AnnouncementEditView.as_view()),
+    path(
+        "announcements/<int:announcement_id>/delete/",
+        AnnouncementEditView.as_view(),
+        name="announcement_delete",
+    ),
 ]

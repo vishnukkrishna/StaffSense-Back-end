@@ -357,3 +357,31 @@ def add_department(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AnnouncementEditView(APIView):
+    def get(self, request):
+        announcements = Announcement.objects.all().values()
+        return JsonResponse(list(announcements), safe=False)
+
+    def post(self, request):
+        serializer = AnnouncementSerializer(data=request.data)
+
+        if serializer.is_valid():
+            print("success")
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, announcement_id):
+        try:
+            announcement = Announcement.objects.get(id=announcement_id)
+            announcement.delete()
+            return JsonResponse(
+                {"message": "Announcement deleted successfully"},
+                status=status.HTTP_204_NO_CONTENT,
+            )
+        except Announcement.DoesNotExist:
+            return JsonResponse(
+                {"message": "Announcement not found"}, status=status.HTTP_404_NOT_FOUND
+            )

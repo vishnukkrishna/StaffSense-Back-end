@@ -100,3 +100,9 @@ class EmployeePicSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = ["id", "profile_pic"]
+
+
+class AnnouncementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Announcement
+        fields = ["event", "note"]
