@@ -10,6 +10,7 @@ urlpatterns = [
     path("verify-token/", verify_token, name="verify_token"),
     path("userlogin/", LoginView.as_view(), name="login"),
     path("employelist/", EmployeeListView.as_view(), name="employelist"),
+    path("changepass/", ChangePass.as_view(), name="change_password"),
     path(
         "blockemployees/<int:employee_id>/",
         BlockEmployeeView.as_view(),
@@ -20,8 +21,14 @@ urlpatterns = [
         UnblockEmployeeView.as_view(),
         name="unblock_employee",
     ),
+    # path("adminsearchEmployee/", AdminSearchEmployee.as_view()),
     path("edit/<int:pk>/", EmployeeEditView.as_view(), name="employeee-detail"),
     path("details/<int:pk>/", EmployeeEditView.as_view(), name="details"),
+    path(
+        "upload-profile-picture/",
+        upload_profile_picture,
+        name="upload_profile_picture/",
+    ),
     path("departments/", DepartmentListAPIView.as_view(), name="departments"),
     path(
         "departments/<int:pk>/",

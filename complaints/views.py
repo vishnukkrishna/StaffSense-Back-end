@@ -12,7 +12,7 @@ from complaints.serializer import ComplaintSerializer, ComplaintsSerializer
 
 
 class ComplaintViewSet(viewsets.ModelViewSet):
-    queryset = Complaint.objects.all()
+    queryset = Complaint.objects.all().order_by('id')
     serializer_class = ComplaintSerializer
 
     def create(self, request, *args, **kwargs):
@@ -20,7 +20,6 @@ class ComplaintViewSet(viewsets.ModelViewSet):
         description = request.data.get("description")
         is_present = request.data.get("is_present")
 
-        employee = Employee.objects.get(id=employee_id)
 
         complaint_data = {
             "employee": employee_id,

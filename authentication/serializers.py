@@ -9,7 +9,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Employee
-        fields = ["username", "email", "temporaryPassword", "department"]
+        fields = ["username", "email", "temporaryPassword", "department", "designation"]
 
 
 class EmployeeDisplaySerializer(serializers.ModelSerializer):
@@ -81,6 +81,8 @@ class AdminLoginSerializer(serializers.Serializer):
 
 
 class UserDataSerializer(serializers.ModelSerializer):
+    department = DepartmentSerializer()
+
     class Meta:
         model = Employee
         fields = [

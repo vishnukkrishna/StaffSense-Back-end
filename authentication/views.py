@@ -28,6 +28,12 @@ from django.http import JsonResponse
 from datetime import datetime, timedelta
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.parsers import MultiPartParser
+from rest_framework.generics import (
+    ListCreateAPIView,
+    UpdateAPIView,
+    RetrieveUpdateAPIView,
+)
+from rest_framework.filters import SearchFilter
 
 # Create your views here.
 
@@ -77,7 +83,9 @@ class AdminLoginView(APIView):
 def Employeedetails(request, user_id):
     try:
         user = Employee.objects.get(id=user_id)
+        print(user, "yyyyyyyyyyyyyyyyyyyyyyyyyyyyy")
         serializer = UserDataSerializer(user)
+        print(serializer, "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu")
         return JsonResponse(serializer.data)
     except Employee.DoesNotExist:
         return JsonResponse({"error": "Employee not found"}, status=404)
@@ -85,25 +93,34 @@ def Employeedetails(request, user_id):
 
 class EmployeeRegistrationView(APIView):
     def post(self, request, format=None):
+        print(request.data)
         serializer = EmployeeSerializer(data=request.data)
-        print("ggggggggggggggggggggg")
+        print("========================================================")
+        print("ggggggggggggggggggggg", serializer)
 
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
+        print(
+            validated_data,
+            "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt",
+        )
 
         email = validated_data.get("email")
         username = validated_data.get("username")
-        department = validated_data.get("department")
+        # department = validated_data.get("department")
+        print("============================0000000============================")
+        designation = validated_data.get("designation")
+        print(email, username, designation, "hhhhhhhhhhhhhhh")
 
-        print(email, username, department, "hhhhhhhhhhhhhhh")
         temporary_password = validated_data.get("temporaryPassword")
 
-        department = Department.objects.get(name=department)
+        # department = Department.objects.get(name=department)
 
         employee = Employee.objects.create(
             email=email,
             username=username,
-            department=department,
+            # department=department,
+            designation=designation,
             password=make_password(temporary_password),
         )
         print("jjjjjjjjjjjjj")
@@ -119,12 +136,13 @@ class EmployeeRegistrationView(APIView):
             email, username, employee.id, temporary_password, accessToken
         )
 
-        print("successs", department)
+        # print("successs", department)
         response_data = {
             "message": "Employee registered successfully.",
             "username": username,
             "email": email,
-            "department": department.name,
+            "designation": designation,
+            # "department": department.name,
             "temporaryPassword": temporary_password,
             "tokens": tokens,
         }
@@ -184,6 +202,28 @@ def verify_token(request):
         return Response({"valid": False}, status=400)
 
 
+class ChangePass(APIView):
+    def post(self, request, format=None):
+        print(request.data, "hellooooo")
+        oldpassword = request.data["oldpass"]
+        password = request.data["password"]
+        user_id = request.data["user_id"]
+        print(oldpassword, password)
+        user = Employee.objects.get(id=user_id)
+
+        success = user.check_password(oldpassword)
+        if success:
+            user.set_password(password)
+            user.save()
+            print("updated")
+            data = {"msg": 200}
+            return Response(data)
+        else:
+            print("Not done")
+            data = {"msg": 500}
+            return Response(data)
+
+
 class LoginView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         print("reched backendddddddddddddddddddddd")
@@ -198,10 +238,10 @@ class LoginView(TokenObtainPairView):
             # user =  Employee.objects.get(email=email)
             employee = Employee.objects.select_related("department").get(email=email)
             print(employee, "jjjjjjj")
-            department_name = employee.department.name
+            # department_name = employee.department.name
             print("here")
             print(employee, "im the bosssss")
-            print(department_name, "department is ourssssssss")
+            # print(department_name, "department is ourssssssss")
             # user_id = user.id
 
             print(employee.first_name + " " + employee.last_name, "heyy")
@@ -213,7 +253,7 @@ class LoginView(TokenObtainPairView):
                 "is_active": employee.is_active,
                 "is_blocked": employee.is_blocked,
                 "designation": employee.designation,
-                "department": department_name,
+                # "department": department_name,
                 "is_admin": employee.is_superuser,
                 "exp": datetime.utcnow() + timedelta(minutes=15),
             }
@@ -300,6 +340,30 @@ class EmployeeEditView(APIView):
             return Response(
                 {"message": "employee not found"}, status=status.HTTP_404_NOT_FOUND
             )
+
+
+@api_view(["PUT"])
+def upload_profile_picture(request):
+    user_id = request.data.get("user_id")
+    try:
+        employee = Employee.objects.get(id=user_id)
+        image_file = request.FILES.get("profile_pic")
+        if image_file:
+            employee.profile_pic = image_file
+            employee.save()
+            serializer = EmployeePicSerializer(employee)
+            return Response(serializer.data)
+        else:
+            return Response({"message": "No image file found"}, status=400)
+    except Employee.DoesNotExist:
+        return Response({"message": "User not found"}, status=404)
+
+
+# class AdminSearchEmployee(ListCreateAPIView):
+#     serializer_class = EmployeeSerializer
+#     filter_backends = [SearchFilter]
+#     queryset = Employee.objects.filter(is_superuser=False)
+#     search_fields = ["username"]
 
 
 class DepartmentListAPIView(APIView):
