@@ -65,27 +65,33 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         request_data = request.data.copy()
+        tasks_data = request_data.get("tasks", [])
+        print(request_data, "rrrrrrrgggggggggggggggg")
 
         # Convert 'assignedTo' value to an integer
         assigned_to_id = int(request_data.get("assignedTo", 0))
         assigned_to = get_object_or_404(Employee, pk=assigned_to_id)
+        print("bbbbbbbbbbbbbbbbbbb", assigned_to.first_name)
 
         # Similarly, convert 'project' value to an integer
         project_id = int(request_data.get("project", 0))
         project = get_object_or_404(Project, pk=project_id)
 
-        start_date_str = request_data.get("start_date")
-        end_date_str = request_data.get("end_date")
+        created_tasks = []
+
+        # for task_data in tasks_data:
+        start_date_str = request_data["start_date"]
+        end_date_str = request_data["end_date"]
         start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
         end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+
         if start_date < project.start_date or end_date > project.end_date:
-            raise ValidationError(
-                "Task's start date and end date must be within the project's start date and end date."
-            )
+            return Response("Date Error", status=status.HTTP_400_BAD_REQUEST)
 
-        if project.task_set.filter(assignedTo=assigned_to).exists():
-            raise ValidationError("Employee is already assigned to the project.")
+        # if project.task_set.filter(assignedTo=assigned_to,).exists():
+        #     raise ValidationError("Employee is already assigned to the project.")
 
+        print(start_date_str, "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeerrrrrrrrrrrrrrrrrr")
         task = Task.objects.create(
             name=request_data.get("name"),
             description=request_data.get("description"),
@@ -94,6 +100,8 @@ class TaskViewSet(viewsets.ModelViewSet):
             project=project,
         )
         task.assignedTo.set([assigned_to])
+
+        created_tasks.append(task)
 
         return Response("successsss", status=status.HTTP_201_CREATED)
 
@@ -143,7 +151,7 @@ def update_task_status(request, pk):
         task.state = new_status
         print(task.state, "oooooooooooooooooooooooooooooooooo")
         task.save()
-        print(task,"kkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
+        print(task, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
 
         return Response(
             {"success": "Task status updated successfully."}, status=status.HTTP_200_OK
