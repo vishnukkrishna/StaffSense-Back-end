@@ -3,15 +3,17 @@ from .models import Project, Task
 from projectTaskManagement.models import Employee
 
 
-class ProjectSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Project
-        fields = "__all__"
-
-
 class EmployeeSerializers(serializers.ModelSerializer):
     class Meta:
         model = Employee
+        fields = "__all__"
+
+
+class ProjectSerializer(serializers.ModelSerializer):
+    assignedTo = serializers.PrimaryKeyRelatedField(queryset=Employee.objects.all())
+
+    class Meta:
+        model = Project
         fields = "__all__"
 
 

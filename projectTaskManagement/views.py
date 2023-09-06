@@ -15,36 +15,50 @@ from datetime import datetime
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
-    print(queryset, "ggggggggggggggggggggggggggggggg")
     serializer_class = ProjectSerializer
 
     def create(self, request):
         name = request.data.get("name", None)
+        assigned_to_id = request.data.get("assignedTo", None)
 
-        if name:
-            # name_lower = name.lower()
+        if not name:
+            return Response(
+                {"detail": "Project name is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-            if Project.objects.filter(
-                name__iexact=name.lower().replace(" ", "")
-            ).exists():
-                return Response(
-                    {"detail": "Project with this name already exists."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+        try:
+            assigned_to = Employee.objects.get(id=assigned_to_id)
+        except Employee.DoesNotExist:
+            return Response(
+                {"detail": "Assigned Employee not found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-            serializer = self.get_serializer(data=request.data)
+        # Check for duplicate project names (case-insensitive, no spaces)
+        if Project.objects.filter(name__iexact=name.lower().replace(" ", "")).exists():
+            return Response(
+                {"detail": "Project with this name already exists."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-            serializer.is_valid(raise_exception=True)
+        project_data = {
+            "name": name,
+            "description": request.data.get("description", ""),
+            "start_date": request.data.get("start_date", None),
+            "end_date": request.data.get("end_date", None),
+            "assignedTo": assigned_to,
+        }
 
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        project = Project(**project_data)
+        project.save()
 
-        return Response(
-            {"detail": "Project name is required."}, status=status.HTTP_400_BAD_REQUEST
-        )
+        serializer = ProjectSerializer(project)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=["PUT"])
+    @action(detail=True, methods=["POST"])
     def update_project(self, request, pk=None):
+        print(request.data, "ggggg")
         print("i am hereeeeeeeeeeeeeeeeee")
         project = self.get_object()
         serializer = self.get_serializer(project, data=request.data)
