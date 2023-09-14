@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "authentication",  # All authentication functions are present in this app
     "projectTaskManagement",  # Project and Task Management
     "complaints",  # Complaints and Request
+    "leavemanagement",  # Leave Management
     "rest_framework",
     "corsheaders",
     "rest_framework_simplejwt",
