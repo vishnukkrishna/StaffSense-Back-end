@@ -27,4 +27,5 @@ urlpatterns = [
     path("token/refresh/", jwt_views.TokenRefreshView.as_view(), name="token_refresh"),
     path("complaint/", include("complaints.urls")),
     path("leave/", include("leavemanagement.urls")),
+    path("chat/", include("chat.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

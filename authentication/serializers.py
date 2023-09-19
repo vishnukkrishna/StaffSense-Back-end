@@ -27,6 +27,7 @@ class EmployeeDisplaySerializer(serializers.ModelSerializer):
             "username",
             "phone",
             "email",
+            "profile_pic",
             "designation",
             "is_blocked",
         ]

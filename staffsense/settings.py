@@ -33,6 +33,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
+    "channels",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -43,6 +45,7 @@ INSTALLED_APPS = [
     "projectTaskManagement",  # Project and Task Management
     "complaints",  # Complaints and Request
     "leavemanagement",  # Leave Management
+    "chat",  # Chat Management
     "rest_framework",
     "corsheaders",
     "rest_framework_simplejwt",
@@ -77,8 +80,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "staffsense.wsgi.application"
-
+ASGI_APPLICATION = "staffsense.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
@@ -106,6 +108,16 @@ REST_FRAMEWORK = {
 # JWT Token
 SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("JWT",),
+}
+
+# Channels
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
 }
 
 # Password validation
