@@ -196,49 +196,43 @@ class ChangePass(APIView):
 
 class LoginView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
-        print("reched backendddddddddddddddddddddd")
+        print("reached backendddddddddddddddddddddd")
         response = super().post(request, *args, **kwargs)
-        if response.status_code == 200:
-            print("here")
-            # Authentication successful, generate a new JWT token
+
+        if response.status_code == status.HTTP_200_OK:
             data = request.data
-            print(data)
             email = data["email"]
-            print(email, "emailllllllllll")
-            # user =  Employee.objects.get(email=email)
-            employee = Employee.objects.select_related("department").get(email=email)
-            print(employee, "jjjjjjj")
-            # department_name = employee.department.name
-            print("here")
-            print(employee, "im the bosssss")
-            # print(department_name, "department is ourssssssss")
-            # user_id = user.id
 
-            print(employee.first_name + " " + employee.last_name, "heyy")
-            payload = {
-                "name": employee.first_name + " " + employee.last_name,
-                "username": employee.username,
-                "user_id": employee.id,
-                "email": email,
-                "is_active": employee.is_active,
-                "is_blocked": employee.is_blocked,
-                "designation": employee.designation,
-                # "department": department_name,
-                "is_admin": employee.is_superuser,
-                "exp": datetime.utcnow() + timedelta(minutes=15),
-            }
+            try:
+                employee = Employee.objects.select_related("department").get(
+                    email=email
+                )
+                user_full_name = f"{employee.first_name} {employee.last_name}"
 
-            print(payload, "hello payload")
-            access_token = jwt.encode(
-                payload, settings.SECRET_KEY, algorithm="HS256"
-            ).decode("utf-8")
+                payload = {
+                    "name": user_full_name,
+                    "username": employee.username,
+                    "user_id": employee.id,
+                    "email": email,
+                    "is_active": employee.is_active,
+                    "is_blocked": employee.is_blocked,
+                    "designation": employee.designation,
+                    "is_admin": employee.is_superuser,
+                    "exp": timezone.now() + timedelta(minutes=15),
+                }
 
-            print(access_token, "accesssssss tokennnnnnnn")
-            return Response({"access_token": access_token})
+                access_token = jwt.encode(
+                    payload, settings.SECRET_KEY, algorithm="HS256"
+                ).decode("utf-8")
 
+                return Response(
+                    {"access_token": access_token}, status=status.HTTP_200_OK
+                )
+            except Employee.DoesNotExist:
+                return Response(
+                    {"detail": "Employee not found"}, status=status.HTTP_400_BAD_REQUEST
+                )
         else:
-            # Authentication failed
-            print("erooorrrrrrrrrrrrrrrrrrrrrrrr")
             return response
 
 
@@ -405,26 +399,26 @@ def add_department(request):
 class AnnouncementEditView(APIView):
     def get(self, request):
         announcements = Announcement.objects.all().values()
-        return JsonResponse(list(announcements), safe=False)
+        return Response(list(announcements), status=status.HTTP_200_OK)
 
     def post(self, request):
         serializer = AnnouncementSerializer(data=request.data)
 
         if serializer.is_valid():
-            print("success")
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, announcement_id):
         try:
             announcement = Announcement.objects.get(id=announcement_id)
             announcement.delete()
-            return JsonResponse(
+            return Response(
                 {"message": "Announcement deleted successfully"},
                 status=status.HTTP_204_NO_CONTENT,
             )
         except Announcement.DoesNotExist:
-            return JsonResponse(
+            return Response(
                 {"message": "Announcement not found"}, status=status.HTTP_404_NOT_FOUND
             )

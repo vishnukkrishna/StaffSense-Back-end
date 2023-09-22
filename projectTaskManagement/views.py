@@ -59,8 +59,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["POST"])
     def update_project(self, request, pk=None):
-        print(request.data, "ggggg")
-        print("i am hereeeeeeeeeeeeeeeeee")
         project = self.get_object()
         serializer = self.get_serializer(project, data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -89,13 +87,15 @@ class TaskViewSet(viewsets.ModelViewSet):
         project_id = int(request_data.get("project", 0))
         project = get_object_or_404(Project, pk=project_id)
 
-        created_tasks = []
-
         # Parse start_date and end_date
-        start_date_str = request_data["start_date"]
-        end_date_str = request_data["end_date"]
-        start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
-        end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+        start_date_str = request_data.get("start_date")
+        end_date_str = request_data.get("end_date")
+
+        try:
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+            end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return Response("Invalid date format", status=status.HTTP_400_BAD_REQUEST)
 
         if start_date < project.start_date or end_date > project.end_date:
             return Response("Date Error", status=status.HTTP_400_BAD_REQUEST)
@@ -110,8 +110,6 @@ class TaskViewSet(viewsets.ModelViewSet):
         )
         task.assignedTo.set([assigned_to])
 
-        created_tasks.append(task)
-
         # After creating the task, send the email notification
         send_task_email(
             user_email=assigned_to.email,
@@ -121,7 +119,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             end_date=end_date,
         )
 
-        return Response("successsss", status=status.HTTP_201_CREATED)
+        return Response("success", status=status.HTTP_201_CREATED)
 
     def get(self, request, *args, **kwargs):
         tasks = Task.objects.all()
@@ -167,13 +165,9 @@ def update_task_status(request, pk):
         task = Task.objects.get(pk=pk)
         new_status = request.data.get("status")
         task.state = new_status
-        print(task.state, "oooooooooooooooooooooooooooooooooo")
         task.save()
-        print(task, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
-
         return Response(
             {"success": "Task status updated successfully."}, status=status.HTTP_200_OK
         )
-
     except Task.DoesNotExist:
         return Response({"error": "Task not found."}, status=status.HTTP_404_NOT_FOUND)

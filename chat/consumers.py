@@ -13,7 +13,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         other_user_id = self.scope["url_route"]["kwargs"]["id"]
         self.room_name = (
             f"{current_user_id}_{other_user_id}"
-            if int(current_user_id) > int(other_user_id)
+            if current_user_id > other_user_id
             else f"{other_user_id}_{current_user_id}"
         )
 
@@ -31,14 +31,9 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         message = data["message"]
         sender_username = data["senderUsername"]
         receiver_username = data["receiverUsername"]
-        print("receiver name", receiver_username)
-        print("sendername", sender_username)
 
         await self.save_message(
-            sender_username=sender_username,
-            receiver_username=receiver_username,
-            message=message,
-            thread_name=self.room_group_name,
+            sender_username, receiver_username, message, self.room_group_name
         )
 
         await self.channel_layer.group_send(
@@ -54,32 +49,34 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         message = event["message"]
         username = event["senderUsername"]
 
-        await self.send(
-            text_data=json.dumps(
-                {
-                    "message": message,
-                    "senderUsername": username,
-                    "messages": message,
-                }
-            )
+        await self.send_json(
+            {
+                "message": message,
+                "senderUsername": username,
+                "messages": message,
+            }
         )
+
+    @database_sync_to_async
+    def save_message(self, sender_username, receiver_username, message, thread_name):
+        try:
+            sender_instance = Employee.objects.get(username=sender_username)
+            receiver_instance = Employee.objects.get(username=receiver_username)
+
+            Chat.objects.create(
+                sender=sender_instance,
+                receiver=receiver_instance,
+                message=message,
+                thread_name=thread_name,
+            )
+        except Employee.DoesNotExist:
+            pass  # Handle the case when sender or receiver does not exist
 
     @database_sync_to_async
     def get_messages(self):
         messages = []
-        for instance in Chat.objects.filter(thread_name=self.room_group_name):
-            messages = ChatSerializer(instance).data
-        return messages
 
-    @database_sync_to_async
-    def save_message(self, sender_username, receiver_username, message, thread_name):
-        sender_instance = Employee.objects.get(username=sender_username)
-        reciever_instance = Employee.objects.get(username=receiver_username)
-        print(sender_username, "sender_username")
-        print(receiver_username, "receiver_username")
-        Chat.objects.create(
-            sender=sender_instance,
-            receiver=reciever_instance,
-            message=message,
-            thread_name=thread_name,
-        )
+        for instance in Chat.objects.filter(thread_name=self.room_group_name):
+            messages.append(ChatSerializer(instance).data)
+
+        return messages

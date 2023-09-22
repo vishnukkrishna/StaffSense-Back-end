@@ -17,17 +17,19 @@ from rest_framework.decorators import api_view
 
 class LeaveApplicationView(APIView):
     def post(self, request, format=None):
-        employee = request.data.get("employee")
-        start_date = request.data.get("start_date")
-        end_date = request.data.get("end_date")
+        employee_id = request.data.get("employee")
+        start_date_str = request.data.get("start_date")
+        end_date_str = request.data.get("end_date")
 
-        employee_id = Employee.objects.get(pk=employee)
+        try:
+            employee = Employee.objects.get(pk=employee_id)
+        except Employee.DoesNotExist:
+            return Response(
+                {"error": "Employee not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
-        if isinstance(start_date, str):
-            start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
-
-        if isinstance(end_date, str):
-            end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+        start_date, end_date = self.parse_date(start_date_str, end_date_str)
 
         if start_date and start_date < date.today():
             return Response(
@@ -35,48 +37,58 @@ class LeaveApplicationView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if employee_id and start_date and end_date:
-            existing_leave = LeaveRequest.objects.filter(
-                employee=employee_id, start_date__lte=end_date, end_date__gte=start_date
-            ).exists()
+        existing_leave = LeaveRequest.objects.filter(
+            employee=employee, start_date__lte=end_date, end_date__gte=start_date
+        ).exists()
 
-            if existing_leave:
-                return Response(
-                    {"error": "You have already applied for leave during this period."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+        if existing_leave:
+            return Response(
+                {"error": "You have already applied for leave during this period."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         serializer = LeaveSerializer(data=request.data)
 
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request, format=None):
         leaves = LeaveRequest.objects.all()
         serializer = LeaveWithEmployeeSerializer(leaves, many=True)
-
         data = serializer.data
         return Response(data)
 
     def put(self, request, format=None):
         leave_id = request.data.get("leave_id")
-        leave = LeaveRequest.objects.get(id=leave_id)
         is_approved = request.data.get("is_approved")
-        start_date = leave.start_date
-        end_date = leave.end_date
         user_email = request.data.get("email")
 
         leave_request = get_object_or_404(LeaveRequest, pk=leave_id)
         leave_request.is_approved = is_approved
         leave_request.save()
+
+        start_date = leave_request.start_date
+        end_date = leave_request.end_date
         send_leave_email(user_email, is_approved, start_date, end_date)
 
         return Response(
             {"message": "Leave request status updated successfully."},
             status=status.HTTP_200_OK,
         )
+
+    def parse_date(self, start_date_str, end_date_str):
+        start_date = end_date = None
+
+        if isinstance(start_date_str, str):
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+
+        if isinstance(end_date_str, str):
+            end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+
+        return start_date, end_date
 
 
 class UserLeaveDataView(APIView):
