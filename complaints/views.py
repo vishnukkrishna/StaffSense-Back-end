@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-
+from .utils import send_complaint_emal
 from rest_framework import viewsets
 from .models import Complaint
 from authentication.models import Employee
@@ -12,14 +12,13 @@ from complaints.serializer import ComplaintSerializer, ComplaintsSerializer
 
 
 class ComplaintViewSet(viewsets.ModelViewSet):
-    queryset = Complaint.objects.all().order_by('id')
+    queryset = Complaint.objects.all().order_by("id")
     serializer_class = ComplaintSerializer
 
     def create(self, request, *args, **kwargs):
         employee_id = request.data.get("employee")
         description = request.data.get("description")
         is_present = request.data.get("is_present")
-
 
         complaint_data = {
             "employee": employee_id,
@@ -43,7 +42,14 @@ class ComplaintViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
+        original_status = instance.status
         self.perform_update(serializer)
+        if original_status != instance.status and instance.status in [
+            "Resolved",
+            "In Progress",
+        ]:
+            send_complaint_emal(instance.employee.email, instance.status)
+
         return Response(serializer.data)
 
     def list(self, request, *args, **kwargs):

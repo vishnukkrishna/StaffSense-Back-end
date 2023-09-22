@@ -9,6 +9,7 @@ class Complaint(models.Model):
         ("Pending", "Pending"),
         ("In Progress", "In Progress"),
         ("Resolved", "Resolved"),
+        # Add more complaint reasons types as needed
     ]
     description = models.TextField()
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
@@ -16,4 +17,4 @@ class Complaint(models.Model):
     status = models.CharField(max_length=255, choices=STATUS_CHOICES, default="Pending")
 
     def __str__(self):
-        return self.description
+        return f"{self.employee} - {self.description} - {self.status}"

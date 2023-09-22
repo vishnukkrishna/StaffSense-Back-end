@@ -12,7 +12,7 @@ def send_leave_email(user_email, is_approved, start_date, end_date):
             f"Your leave request from {start_date} to {end_date} has been rejected."
         )
 
-    from_email = "your_email@example.com"  # Replace this with your email address
+    from_email = "staffsense222@gmail.com"
     recipient_list = [user_email]
 
     send_mail(subject, message, from_email, recipient_list)
