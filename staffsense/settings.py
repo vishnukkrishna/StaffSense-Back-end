@@ -81,7 +81,7 @@ TEMPLATES = [
 ]
 
 ASGI_APPLICATION = "staffsense.asgi.application"
-
+WSGI_APPLICATION = "staffsense.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 

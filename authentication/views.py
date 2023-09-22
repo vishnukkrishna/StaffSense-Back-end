@@ -43,50 +43,46 @@ class AdminLoginView(APIView):
     def post(self, request):
         serializer = AdminLoginSerializer(data=request.data)
 
-        serializer.is_valid(raise_exception=True)
+        if serializer.is_valid(raise_exception=True):
+            email = serializer.validated_data["email"]
+            password = serializer.validated_data["password"]
 
-        email = serializer.validated_data["email"]
-        password = serializer.validated_data["password"]
+            try:
+                user = Employee.objects.get(email=email)
+            except Employee.DoesNotExist:
+                return Response(
+                    {"error": "No such admin exists"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
-        user = Employee.objects.get(email=email)
-        print(user, "userrrrrrrrr")
-        if user is None:
+            if not user.check_password(password):
+                return Response(
+                    {"error": "Incorrect Password"}, status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if not user.is_superuser:
+                return Response(
+                    {"error": "No admin privileges"}, status=status.HTTP_400_BAD_REQUEST
+                )
+
+            access_token = AccessToken.for_user(user)
+            access_token["name"] = "Admin"
+            access_token["email"] = user.email
+            access_token["is_active"] = user.is_active
+            access_token["is_admin"] = user.is_superuser
+            access_token = str(access_token)
+
             return Response(
-                {"error": "No such admin exist"}, status=status.HTTP_400_BAD_REQUEST
+                {
+                    "access_token": access_token,
+                }
             )
-            # raise AuthenticationFailed("No such admin exist")
-        if not user.check_password(password):
-            print("pass")
-            return Response(
-                {"error": "Incorrect Password"}, status=status.HTTP_400_BAD_REQUEST
-            )
-            # raise AuthenticationFailed("Incorrect Password")
-        if not user.is_superuser:
-            return Response(
-                {"error": "No admin privileges"}, status=status.HTTP_400_BAD_REQUEST
-            )
-            # raise AuthenticationFailed("No admin privileges")
-        access_token = AccessToken.for_user(user)
-        access_token["name"] = "Admin"
-        access_token["email"] = user.email
-        access_token["is_active"] = user.is_active
-
-        access_token["is_admin"] = user.is_superuser
-        access_token = str(access_token)
-
-        return Response(
-            {
-                "access_token": access_token,
-            }
-        )
 
 
 def Employeedetails(request, user_id):
     try:
         user = Employee.objects.get(id=user_id)
-        print(user, "yyyyyyyyyyyyyyyyyyyyyyyyyyyyy")
         serializer = UserDataSerializer(user)
-        print(serializer, "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu")
         return JsonResponse(serializer.data)
     except Employee.DoesNotExist:
         return JsonResponse({"error": "Employee not found"}, status=404)
@@ -94,61 +90,44 @@ def Employeedetails(request, user_id):
 
 class EmployeeRegistrationView(APIView):
     def post(self, request, format=None):
-        print(request.data)
-        serializer = EmployeeSerializer(data=request.data)
-        print("========================================================")
-        print("ggggggggggggggggggggg", serializer)
+        request_data = request.data
+        serializer = EmployeeSerializer(data=request_data)
 
-        serializer.is_valid(raise_exception=True)
-        validated_data = serializer.validated_data
-        print(
-            validated_data,
-            "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt",
-        )
+        if serializer.is_valid(raise_exception=True):
+            validated_data = serializer.validated_data
+            email = validated_data.get("email")
+            username = validated_data.get("username")
+            designation = validated_data.get("designation")
+            temporary_password = validated_data.get("temporaryPassword")
 
-        email = validated_data.get("email")
-        username = validated_data.get("username")
-        # department = validated_data.get("department")
-        print("============================0000000============================")
-        designation = validated_data.get("designation")
-        print(email, username, designation, "hhhhhhhhhhhhhhh")
+            employee = Employee.objects.create(
+                email=email,
+                username=username,
+                designation=designation,
+                password=make_password(temporary_password),
+            )
 
-        temporary_password = validated_data.get("temporaryPassword")
+            email_token = default_token_generator.make_token(employee)
+            employee.email_token = email_token
+            employee.save()
 
-        # department = Department.objects.get(name=department)
+            tokens = generate_tokens(employee)
+            accessToken = tokens["access"]
 
-        employee = Employee.objects.create(
-            email=email,
-            username=username,
-            # department=department,
-            designation=designation,
-            password=make_password(temporary_password),
-        )
-        print("jjjjjjjjjjjjj")
-        email_token = default_token_generator.make_token(employee)
-        employee.email_token = email_token
-        employee.save()
+            send_email_to_employee(
+                email, username, employee.id, temporary_password, accessToken
+            )
 
-        tokens = generate_tokens(employee)
+            response_data = {
+                "message": "Employee registered successfully.",
+                "username": username,
+                "email": email,
+                "designation": designation,
+                "temporaryPassword": temporary_password,
+                "tokens": tokens,
+            }
 
-        accessToken = tokens["access"]
-
-        send_email_to_employee(
-            email, username, employee.id, temporary_password, accessToken
-        )
-
-        # print("successs", department)
-        response_data = {
-            "message": "Employee registered successfully.",
-            "username": username,
-            "email": email,
-            "designation": designation,
-            # "department": department.name,
-            "temporaryPassword": temporary_password,
-            "tokens": tokens,
-        }
-
-        return Response(response_data, status=status.HTTP_200_OK)
+            return Response(response_data, status=status.HTTP_200_OK)
 
 
 def generate_tokens(user):
@@ -179,48 +158,38 @@ def verify_token(request):
     SECRET_KEY = "django-insecure-q&j^&vzefm_+0dhxl(zgunz!w%7v-51$a_w1uzav5y3%e0efe_"
     try:
         decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-
-        # Token is valid
-
         user_id = decoded_token["user_id"]
-
         employee = Employee.objects.get(id=user_id)
         if employee.email_token:
-            # Mark the token as expired or delete it from the Employee model
-            employee.email_token = (
-                ""  # Mark the token as expired (set it to an empty string)
-            )
+            employee.email_token = ()
             employee.save()
-
             jwt_token = jwt.encode({"user_id": user_id}, SECRET_KEY, algorithm="HS256")
             return Response({"valid": True, "jwt_token": jwt_token, "status": 200})
 
         else:
             return Response({"valid": True, "jwt_token": "", "status": 404})
 
-        # Generate JWT token
     except InvalidTokenError as e:
         return Response({"valid": False}, status=400)
 
 
 class ChangePass(APIView):
     def post(self, request, format=None):
-        print(request.data, "hellooooo")
-        oldpassword = request.data["oldpass"]
-        password = request.data["password"]
-        user_id = request.data["user_id"]
-        print(oldpassword, password)
-        user = Employee.objects.get(id=user_id)
-
-        success = user.check_password(oldpassword)
-        if success:
-            user.set_password(password)
-            user.save()
-            print("updated")
-            data = {"msg": 200}
-            return Response(data)
-        else:
-            print("Not done")
+        try:
+            oldpassword = request.data["oldpass"]
+            password = request.data["password"]
+            user_id = request.data["user_id"]
+            user = Employee.objects.get(id=user_id)
+            success = user.check_password(oldpassword)
+            if success:
+                user.set_password(password)
+                user.save()
+                data = {"msg": 200}
+                return Response(data)
+            else:
+                data = {"msg": 500}
+                return Response(data)
+        except Exception as e:
             data = {"msg": 500}
             return Response(data)
 
