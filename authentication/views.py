@@ -34,6 +34,7 @@ from rest_framework.generics import (
     RetrieveUpdateAPIView,
 )
 from rest_framework.filters import SearchFilter
+from .utils import send_block_email
 
 # Create your views here.
 
@@ -286,9 +287,18 @@ class BlockEmployeeView(APIView):
         except Employee.DoesNotExist:
             raise NotFound("Employee not found")
 
+        # Block the employee and set their status
         employee.is_active = False
         employee.is_blocked = True
         employee.save()
+
+        # Send the email to the blocked employee
+        send_block_email(
+            user_email=employee.email,
+            username=employee.username,  # Assuming you have a 'username' field in your Employee model
+            is_blocked=employee.is_blocked,
+        )
+
         serializer = EmployeeSerializer(employee)
         return Response(serializer.data)
 
