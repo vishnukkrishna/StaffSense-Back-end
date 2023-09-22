@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import datetime
+from .utils import send_task_email
 
 # Create your views here.
 
@@ -79,13 +80,10 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         request_data = request.data.copy()
-        tasks_data = request_data.get("tasks", [])
-        print(request_data, "rrrrrrrgggggggggggggggg")
 
         # Convert 'assignedTo' value to an integer
         assigned_to_id = int(request_data.get("assignedTo", 0))
         assigned_to = get_object_or_404(Employee, pk=assigned_to_id)
-        print("bbbbbbbbbbbbbbbbbbb", assigned_to.first_name)
 
         # Similarly, convert 'project' value to an integer
         project_id = int(request_data.get("project", 0))
@@ -93,7 +91,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 
         created_tasks = []
 
-        # for task_data in tasks_data:
+        # Parse start_date and end_date
         start_date_str = request_data["start_date"]
         end_date_str = request_data["end_date"]
         start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
@@ -102,10 +100,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         if start_date < project.start_date or end_date > project.end_date:
             return Response("Date Error", status=status.HTTP_400_BAD_REQUEST)
 
-        # if project.task_set.filter(assignedTo=assigned_to,).exists():
-        #     raise ValidationError("Employee is already assigned to the project.")
-
-        print(start_date_str, "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeerrrrrrrrrrrrrrrrrr")
+        # Create the task
         task = Task.objects.create(
             name=request_data.get("name"),
             description=request_data.get("description"),
@@ -116,6 +111,15 @@ class TaskViewSet(viewsets.ModelViewSet):
         task.assignedTo.set([assigned_to])
 
         created_tasks.append(task)
+
+        # After creating the task, send the email notification
+        send_task_email(
+            user_email=assigned_to.email,
+            name=task.name,
+            assignedTo=assigned_to.first_name,  # Assuming you want to use the first name
+            start_date=start_date,
+            end_date=end_date,
+        )
 
         return Response("successsss", status=status.HTTP_201_CREATED)
 
