@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "complaints",  # Complaints and Request
     "leavemanagement",  # Leave Management
     "chat",  # Chat Management
+    "meetingmanagement",  # Meeting Management
     "rest_framework",
     "corsheaders",
     "rest_framework_simplejwt",
