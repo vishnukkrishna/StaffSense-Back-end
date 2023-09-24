@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "leavemanagement",  # Leave Management
     "chat",  # Chat Management
     "meetingmanagement",  # Meeting Management
+    "visitormanagement",  # Visitor Management
     "rest_framework",
     "corsheaders",
     "rest_framework_simplejwt",

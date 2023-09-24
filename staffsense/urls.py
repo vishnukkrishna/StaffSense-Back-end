@@ -29,4 +29,5 @@ urlpatterns = [
     path("leave/", include("leavemanagement.urls")),
     path("chat/", include("chat.urls")),
     path("", include("meetingmanagement.urls")),
+    path("", include("visitormanagement.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
