@@ -11,6 +11,9 @@ from django.conf import settings
 from authentication.models import *
 from .utils import send_leave_email
 from rest_framework.decorators import api_view
+from visitormanagement.models import *
+from meetingmanagement.models import *
+from leavemanagement.models import *
 
 # Create your views here.
 
@@ -132,12 +135,14 @@ class DashboardDataAPIView(APIView):
     def get(self, request, format=None):
         employee_count = Employee.objects.all().count()
         department_count = Department.objects.all().count()
-        # visitors_count = Visitor.objects.all().count()
+        visitors_count = Visitor.objects.all().count()
+        booking_count = Meeting.objects.all().count()
 
         data = {
             "employeeCount": employee_count,
             "departmentCount": department_count,
-            # "visitorsCount": visitors_count,
+            "visitorsCount": visitors_count,
+            "meetingCount": booking_count,
         }
 
         return Response(data)

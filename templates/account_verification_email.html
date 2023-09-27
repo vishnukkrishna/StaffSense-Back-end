@@ -1,0 +1,15 @@
+{% autoescape off %}
+
+Hello {{ employee.username }},
+
+Please click on the link below to activate your account:
+{{ activation_link }}
+
+To login directly with your temporary credentials, click on the link below:
+<a href="{{ login_link }}">Login with Temporary Credentials</a>
+
+If you didn't request this activation, you can ignore this email.
+
+Thank you.
+
+{% endautoescape %}

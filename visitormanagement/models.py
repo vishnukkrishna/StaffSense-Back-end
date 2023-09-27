@@ -16,7 +16,7 @@ class Visitor(models.Model):
     end_time = models.TimeField()
     unique_identifier = models.UUIDField(default=uuid.uuid4, editable=False)
 
-    qr_code = models.ImageField(upload_to="qrcodes", blank=True, null=True)
+    qr_code = models.ImageField(upload_to="qrcodes/", blank=True, null=True)
     checked_in = models.BooleanField(default=False)
     organizer = models.ForeignKey(
         Employee,

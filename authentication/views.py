@@ -196,7 +196,6 @@ class ChangePass(APIView):
 
 class LoginView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
-        print("reached backendddddddddddddddddddddd")
         response = super().post(request, *args, **kwargs)
 
         if response.status_code == status.HTTP_200_OK:
@@ -298,7 +297,6 @@ class EmployeeEditView(APIView):
             employee = Employee.objects.get(pk=pk)
 
             form_data = request.data.get("employee_name")
-            # form_data = request.data.get('formDataToSend')
 
             serializer = EmployeeEditSerializer(
                 employee, data=request.data, partial=True

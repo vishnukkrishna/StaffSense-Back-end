@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Visitor Registration Details</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      h1 {
+        color: #333;
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
+      p {
+        color: #666;
+        margin-bottom: 10px;
+      }
+      .qr-code {
+        display: inline-block;
+        margin-top: 20px;
+      }
+      .qr-code img {
+        width: 200px;
+        height: 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Visitor Registration Details</h1>
+    <p><strong>Name:</strong> {{ visitor.name }}</p>
+    <p><strong>Purpose of Visit:</strong> {{ visitor.reason }}</p>
+    <p><strong>Visit Date:</strong> {{ visitor.date }}</p>
+    <p><strong>Start Time:</strong> {{ visitor.start_time }}</p>
+    <p><strong>End Time:</strong> {{ visitor.end_time }}</p>
+  </body>
+</html>
