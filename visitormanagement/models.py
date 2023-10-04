@@ -27,4 +27,4 @@ class Visitor(models.Model):
     )
 
     def __str__(self):
-        return self.name
+        return f"{self.name} -Reason- {self.reason} -Date {self.date} {self.start_time} to {self.end_time}"
