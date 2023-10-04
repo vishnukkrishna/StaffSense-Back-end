@@ -36,7 +36,6 @@ class VisitorListAPIView(APIView):
         try:
             visitor = Visitor.objects.get(id=visitor_id)
             visitor_email = visitor.email
-
             visitor.delete()
 
             send_mail(
@@ -110,7 +109,6 @@ class VisitorListAPIView(APIView):
     def send_notification_email(self, visitor, qr_code):
         subject = "Visitor Registration Details"
         from_email = settings.EMAIL_HOST_USER
-
         to_email = visitor.email
 
         # Render the email body template with visitor details
@@ -119,7 +117,6 @@ class VisitorListAPIView(APIView):
             "visitor": visitor,
             "qr_code": qr_code,
         }
-
         email_body = render_to_string("email_template.html", context)
 
         # Generate the PDF file
@@ -133,7 +130,6 @@ class VisitorListAPIView(APIView):
             from_email=from_email,
             to=[to_email],
         )
-
         email.content_subtype = "html"
 
         # Attach the PDF file to the email
@@ -151,26 +147,22 @@ class VisitorListAPIView(APIView):
         p.setFillColorRGB(0.95, 0.95, 0.95)  # Light gray
         p.rect(0, 0, 612, 792, fill=True, stroke=False)
 
-        # Draw the QR code on the PDF canvas
         qr_code = self.generate_qr_code(visitor.unique_identifier)
         qr_code_path = os.path.join(settings.MEDIA_ROOT, "qrcodes", "qr_code.png")
-        qr_code.save(qr_code_path)  # Save the QR code image
+        qr_code.save(qr_code_path)
         p.drawImage(qr_code_path, 400, 550, width=200, height=200)
 
-        # Draw other visitor details
         p.setFont("Helvetica-Bold", 18)
-        p.setFillColor(colors.black)  # Set text color to black
+        p.setFillColor(colors.black)
         p.drawString(100, 710, f"Name: {visitor.name}")
         p.drawString(100, 685, f"Purpose: {visitor.reason}")
         p.drawString(100, 660, f"Visit Date: {visitor.date}")
         p.drawString(100, 635, f"Start Time: {visitor.start_time}")
         p.drawString(100, 610, f"End Time: {visitor.end_time}")
 
-        # Save the PDF content
         p.showPage()
         p.save()
 
-        # Reset the PDF file buffer
         pdf_buffer.seek(0)
 
         return pdf_buffer.getvalue()
