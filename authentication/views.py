@@ -330,13 +330,6 @@ def upload_profile_picture(request):
         return Response({"message": "User not found"}, status=404)
 
 
-# class AdminSearchEmployee(ListCreateAPIView):
-#     serializer_class = EmployeeSerializer
-#     filter_backends = [SearchFilter]
-#     queryset = Employee.objects.filter(is_superuser=False)
-#     search_fields = ["username"]
-
-
 class DepartmentListAPIView(APIView):
     def get(self, request, pk=None):
         if pk:

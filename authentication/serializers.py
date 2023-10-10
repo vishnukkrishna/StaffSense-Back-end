@@ -48,6 +48,7 @@ class EmployeeEditSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "username",
+            "profile_pic",
             "phone",
             "email",
             "designation",
