@@ -8,14 +8,13 @@ class LeaveRequest(models.Model):
         ("Sick Leave", "Sick Leave"),
         ("Vacation Leave", "Vacation Leave"),
         ("Personal Leave", "Personal Leave"),
-        # Add more leave types as needed
     )
 
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    leave_type = models.CharField(choices=LEAVE_TYPES, max_length=255)
-    start_date = models.DateField()
-    end_date = models.DateField()
-    reason = models.TextField()
+    employee    = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    leave_type  = models.CharField(choices=LEAVE_TYPES, max_length=255)
+    start_date  = models.DateField()
+    end_date    = models.DateField()
+    reason      = models.TextField()
     is_approved = models.BooleanField(null=True, default=None)
 
     def __str__(self):

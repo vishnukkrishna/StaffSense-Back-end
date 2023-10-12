@@ -11,7 +11,7 @@ class UserManager(BaseUserManager):
         if not email:
             raise ValueError("The Email field must be set.")
         email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+        user  = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -42,37 +42,37 @@ class Department(models.Model):
 
 # Employee Models
 class Employee(AbstractUser):
-    phone = models.BigIntegerField(null=True, blank=True)
-    email = models.EmailField(unique=True)
+    phone       = models.BigIntegerField(null=True, blank=True)
+    email       = models.EmailField(unique=True)
     profile_pic = models.ImageField(upload_to="profile_pics", blank=True)
-    department = models.ForeignKey(
-        Department, on_delete=models.SET_NULL, null=True, blank=True
+    department  = models.ForeignKey(
+        Department, on_delete = models.SET_NULL, null=True, blank=True
     )
-    specialization = models.CharField(max_length=255, null=True, blank=True)
-    reporting_to = models.CharField(max_length=255, null=True, blank=True)
-    designation = models.CharField(max_length=255, null=True, blank=True)
+    specialization   = models.CharField(max_length=255, null=True, blank=True)
+    reporting_to     = models.CharField(max_length=255, null=True, blank=True)
+    designation      = models.CharField(max_length=255, null=True, blank=True)
     seating_location = models.CharField(max_length=255, null=True, blank=True)
-    is_active = models.BooleanField(default=True)
-    is_superuser = models.BooleanField(default=False)
-    email_token = models.CharField(max_length=255, blank=True, null=True)
-    is_blocked = models.BooleanField(default=False)
+    is_active        = models.BooleanField(default=True)
+    is_superuser     = models.BooleanField(default=False)
+    email_token      = models.CharField(max_length=255, blank=True, null=True)
+    is_blocked       = models.BooleanField(default=False)
 
     groups = models.ManyToManyField(
         Group,
-        related_name="employee_relations",
-        blank=True,
-        help_text="The groups this employee belongs to.",
-        verbose_name="groups",
+        related_name= "employee_relations",
+        blank       = True,
+        help_text   = "The groups this employee belongs to.",
+        verbose_name= "groups",
     )
     user_permissions = models.ManyToManyField(
         Permission,
-        related_name="employee_relations",
-        blank=True,
-        help_text="Specific permissions for this employee.",
-        verbose_name="user permissions",
+        related_name= "employee_relations",
+        blank       = True,
+        help_text   = "Specific permissions for this employee.",
+        verbose_name= "user permissions",
     )
 
-    USERNAME_FIELD = "email"
+    USERNAME_FIELD  = "email"
     REQUIRED_FIELDS = ["username"]
 
     objects = UserManager()
@@ -82,8 +82,8 @@ class Employee(AbstractUser):
 
 
 class Announcement(models.Model):
-    event = models.CharField(max_length=255)
-    note = models.TextField()
+    event      = models.CharField(max_length=255)
+    note       = models.TextField()
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
