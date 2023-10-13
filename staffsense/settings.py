@@ -92,11 +92,11 @@ WSGI_APPLICATION = "staffsense.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "HOST": config("db_host"),
-        "USER": config("db_user"),
-        "PASSWORD": config("db_pass"),
-        "NAME": config("db_name"),
-        "PORT": config("db_port"),
+        "HOST": config("Hostname"),
+        "USER": config("Username"),
+        "PASSWORD": config("Password"),
+        "NAME": config("Database"),
+        "PORT": config("Port"),
     }
 }
 
@@ -117,7 +117,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
+            "hosts": [config("redis")],
         },
     },
 }
