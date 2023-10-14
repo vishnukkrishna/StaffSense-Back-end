@@ -138,6 +138,35 @@ class VisitorListAPIView(APIView):
         # Send the email
         email.send(fail_silently=False)
 
+    # def generate_visitor_ticket_pdf(self, visitor):
+    #     # Create the PDF file
+    #     pdf_buffer = BytesIO()
+    #     p = canvas.Canvas(pdf_buffer, pagesize=letter)
+
+    #     # Set background color
+    #     p.setFillColorRGB(0.95, 0.95, 0.95)  # Light gray
+    #     p.rect(0, 0, 612, 792, fill=True, stroke=False)
+
+    #     qr_code = self.generate_qr_code(visitor.unique_identifier)
+    #     qr_code_path = os.path.join(settings.MEDIA_ROOT, "qrcodes", "qr_code.png")
+    #     qr_code.save(qr_code_path)
+    #     p.drawImage(qr_code_path, 400, 550, width=200, height=200)
+
+    #     p.setFont("Helvetica-Bold", 18)
+    #     p.setFillColor(colors.black)
+    #     p.drawString(100, 710, f"Name: {visitor.name}")
+    #     p.drawString(100, 685, f"Purpose: {visitor.reason}")
+    #     p.drawString(100, 660, f"Visit Date: {visitor.date}")
+    #     p.drawString(100, 635, f"Start Time: {visitor.start_time}")
+    #     p.drawString(100, 610, f"End Time: {visitor.end_time}")
+
+    #     p.showPage()
+    #     p.save()
+
+    #     pdf_buffer.seek(0)
+
+    #     return pdf_buffer.getvalue()
+
     def generate_visitor_ticket_pdf(self, visitor):
         # Create the PDF file
         pdf_buffer = BytesIO()
@@ -147,8 +176,15 @@ class VisitorListAPIView(APIView):
         p.setFillColorRGB(0.95, 0.95, 0.95)  # Light gray
         p.rect(0, 0, 612, 792, fill=True, stroke=False)
 
+        # Create the directory path
+        qr_code_directory = os.path.join(settings.MEDIA_ROOT, "qrcodes")
+
+        # Create the directory if it doesn't exist
+        os.makedirs(qr_code_directory, exist_ok=True)
+
+        qr_code_path = os.path.join(qr_code_directory, "qr_code.png")
+
         qr_code = self.generate_qr_code(visitor.unique_identifier)
-        qr_code_path = os.path.join(settings.MEDIA_ROOT, "qrcodes", "qr_code.png")
         qr_code.save(qr_code_path)
         p.drawImage(qr_code_path, 400, 550, width=200, height=200)
 
