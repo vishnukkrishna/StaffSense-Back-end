@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from pathlib import Path
 import os
 from decouple import config
+import cloudinary
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -35,6 +36,7 @@ ALLOWED_HOSTS = ["*"]
 INSTALLED_APPS = [
     "daphne",
     "channels",
+    'cloudinary',
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -98,6 +100,12 @@ DATABASES = {
         "NAME": config("Database"),
         "PORT": config("Port"),
     }
+}
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config("CLOUD_NAME"),
+    'API_KEY': config('API_KEY'),
+    'API_SECRET': config('API_SECRET'),
 }
 
 # Rest Framework
@@ -183,6 +191,13 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost:5173",
 ]
+
+# Cloudinary Configruation settings
+cloudinary.config( 
+  cloud_name = "dtzwxgckr", 
+  api_key = "147661532166116", 
+  api_secret = "***************************" 
+)
 
 
 EMAIL_BACKEND = config("EMAIL_BACKEND")
