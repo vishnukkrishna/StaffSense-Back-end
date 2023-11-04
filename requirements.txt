@@ -28,4 +28,5 @@ service-identity
 sqlparse
 typing_extensions
 urllib3
-
+cloudinary
+django-cloudinary-storage
