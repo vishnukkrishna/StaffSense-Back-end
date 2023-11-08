@@ -35,6 +35,7 @@ from rest_framework.generics import (
 )
 from rest_framework.filters import SearchFilter
 from .utils import send_block_email
+from decouple import config
 
 # Create your views here.
 
@@ -140,12 +141,15 @@ def generate_tokens(user):
 
 
 def send_email_to_employee(email, username, user_id, temporary_password, email_token):
-    verification_link = (
-        f"http://localhost:3000/user?token={email_token}&user_id={user_id}"
-    )
+    domain = config("domain")
+    # verification_link = (
+    #     f"http://localhost:3000/user?token={email_token}&user_id={user_id}"
+    # )
+    verification_link = f"{domain}/user?token={email_token}&user_id={user_id}"
 
     subject = "Welcome to Our Company"
     message = f"Dear employee, your account has been created. username is {username} and password is {temporary_password } Please verify your email using the following link:\n\n{verification_link}\n\nThank you!"
+   
     email_from = settings.EMAIL_HOST_USER
     recipient_list = [email]
     send_mail(subject, message, email_from, recipient_list)
