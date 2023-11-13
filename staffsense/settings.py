@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config("secret_key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
@@ -94,19 +94,19 @@ WSGI_APPLICATION = "staffsense.wsgi.application"
 # Database
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "HOST": config("Hostname"),
-        "USER": config("Username"),
+        "ENGINE"  : "django.db.backends.postgresql",
+        "HOST"    : config("Hostname"),
+        "USER"    : config("Username"),
         "PASSWORD": config("Password"),
-        "NAME": config("Database"),
-        "PORT": config("Port"),
+        "NAME"    : config("Database"),
+        "PORT"    : config("Port"),
     }
 }
 
 # Cloudinary Configruation settings
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': config("CLOUD_NAME"),
-    'API_KEY': config('API_KEY'),
+    'API_KEY'   : config('API_KEY'),
     'API_SECRET': config('API_SECRET'),
 }
 
@@ -180,7 +180,7 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "STATIC")]
 
 
 MEDIA_ROOT = BASE_DIR / "media"
-MEDIA_URL = "/media/"
+MEDIA_URL  = "/media/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -195,9 +195,9 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 
-EMAIL_BACKEND = config("EMAIL_BACKEND")
-EMAIL_HOST = config("EMAIL_HOST")
-EMAIL_USE_TLS = config("EMAIL_USE_TLS", "")
-EMAIL_PORT = config("EMAIL_PORT")
-EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_BACKEND       = config("EMAIL_BACKEND")
+EMAIL_HOST          = config("EMAIL_HOST")
+EMAIL_USE_TLS       = config("EMAIL_USE_TLS", "")
+EMAIL_PORT          = config("EMAIL_PORT")
+EMAIL_HOST_USER     = config("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
