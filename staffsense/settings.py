@@ -86,22 +86,42 @@ TEMPLATES = [
 ]
 
 ASGI_APPLICATION = "staffsense.asgi.application"
-WSGI_APPLICATION = "staffsense.wsgi.application"
+# WSGI_APPLICATION = "staffsense.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 
 # Database
+# DATABASES = {
+#     "default": {
+#         "ENGINE"  : "django.db.backends.postgresql",
+#         "HOST"    : config("Hostname"),
+#         "USER"    : config("Username"),
+#         "PASSWORD": config("Password"),
+#         "NAME"    : config("Database"),
+#         "PORT"    : config("Port"),
+#     }
+# }
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE"  : "django.db.backends.postgresql",
+#         "HOST"    : "localhost",
+#         "USER"    : "postgres",
+#         "PASSWORD": "3254595",
+#         "NAME"    : "staffsense",
+#         "PORT"    : "5432",
+#     }
+# }
+
+# Database
 DATABASES = {
     "default": {
-        "ENGINE"  : "django.db.backends.postgresql",
-        "HOST"    : config("Hostname"),
-        "USER"    : config("Username"),
-        "PASSWORD": config("Password"),
-        "NAME"    : config("Database"),
-        "PORT"    : config("Port"),
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": "db.sqlite3",
     }
 }
+
 
 # Cloudinary Configruation settings
 CLOUDINARY_STORAGE = {
@@ -131,6 +151,16 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             # "hosts": [("127.0.0.1", 6379)],
+#             "hosts": "rediss://red-ckkh6fsl4vmc73a0jr1g:WPlw394luUNFQ9IlpR8MmkFTsCmUObZh@singapore-redis.render.com:6379",
+#         },
+#     },
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
